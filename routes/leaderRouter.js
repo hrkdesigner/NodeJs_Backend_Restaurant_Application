@@ -1,23 +1,31 @@
-const express = require('express') 
+const express = require('express')
 const leaderRouter = express.Router()
+const Leaders = require('../modles/leaders')
 
 
 
-
+//Get all the leaders on endpoints GET PUT POST DELETE
 
 leaderRouter.route('/')
     .all((req, res, next) => {
         res.status(200)
-        res.setHeader('Content-Type', 'text/plain')
+        res.setHeader('Content-Type', 'application/json')
         next()
     })
 
-    .get((req, res) => {
-        res.end('GET all the leaders')
+    .get((req, res, next) => {
+        Leaders.find({})
+            .then(data => {
+                res.json(data)
+            }, err => next(err))
+            .catch(err => next(err))
     })
 
-    .post((req, res) => {
-        res.end(`POST a new leader with a name : ${req.body.name} and description : ${req.body.description} to the leaders`)
+    .post((req, res, next) => {
+        const promotion = req.body
+        new Leaders(promotion).save()
+            .then(data => res.json(data), err => next(err))
+            .catch(err => next(err))
     })
 
     .put((req, res) => {
@@ -25,28 +33,49 @@ leaderRouter.route('/')
         res.end('PUT operation is not applicable on /leaders !!!')
     })
 
-    .delete((req, res) => {
-        res.end('Deleting all the leaders')
+    .delete((req, res, next) => {
+        Leaders.remove({})
+            .then(data => res.json(data))
+            .catch(err => next(err), err => next(err))
     })
 
 
+//Get SPECIFIC leaders on endpoints GET PUT POST DELETE
 
 leaderRouter.route('/:leaderId')
-    .get((req,res)=>{
-        res.end(`To GET an specific leader with id : ${req.params.leaderId}`)
+
+    .get((req, res) => {
+        const leader = req.params.leaderId
+        Leaders.findById(leader)
+            .then(data => {
+                if (data !== null) {
+                    res.json(data)
+                } else {
+                   res.send( `User with this id :: ${leader} was not found`)
+                }
+            }, err => next(err))
+            .catch(err => next(err))
     })
 
-    .post((req,res)=>{
+    .post((req, res) => {
         res.status(403)
-        res.end('POST operation is not applicable on a specific leader !!!')
+        res.json('POST operation is not applicable on a specific leader !!!')
     })
 
-    .put((req,res)=>{
-        res.end(`To UPDATE an specific leader with id : ${req.params.leaderId}`)
+    .put((req, res, next) => {
+        const leader = req.params.leaderId
+        Leaders.findByIdAndUpdate(leader, { $set: req.body }, { new: true })
+            .then(data => res.json(data), err => next(err))
+            .catch(err => next(err))
     })
 
-    .delete((req,res)=>{
-        res.end(`To DELETE an specific leader with id : ${req.params.leaderId}`)
+    .delete((req, res, next) => {
+        const leader = req.params.leaderId
+        Leaders.findByIdAndRemove(leader)
+            .then(data => {
+                res.send(`User with this id :: ${leader} was DELETED`)
+            }, err => next(err))
+            .catch(err => next(err))
     })
 
 module.exports = leaderRouter
