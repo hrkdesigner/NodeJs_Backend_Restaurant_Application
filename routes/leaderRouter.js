@@ -31,7 +31,7 @@ leaderRouter.route('/')
 
 
 
-dishRouter.route('/:leaderId')
+leaderRouter.route('/:leaderId')
     .get((req,res)=>{
         res.end(`To GET an specific leader with id : ${req.params.leaderId}`)
     })
@@ -49,5 +49,5 @@ dishRouter.route('/:leaderId')
         res.end(`To DELETE an specific leader with id : ${req.params.leaderId}`)
     })
 
-module.exports = dishRouter
+module.exports = leaderRouter
 
