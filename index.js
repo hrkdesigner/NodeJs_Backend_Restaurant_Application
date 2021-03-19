@@ -1,14 +1,15 @@
 const express = require('express')
+const mongoose = require('mongoose')
 const cors = require('cors')
 const morgan = require('morgan')
 const cookiParser = require('cookie-parser')
 const session = require('express-session')
 //If you do not have a database you could youse the  FILESTORE below to save the sessions after your server is turned off 
 const fileStore = require('session-file-store')(session)
-const mongoose = require('mongoose')
 const dishRouter = require('./routes/dishRouter')
 const promoRouter = require('./routes/promoRouter')
 const leaderRouter = require('./routes/leaderRouter')
+const userRouter = require('./routes/userRouter')
 
 
 // Server Initialization 
@@ -45,45 +46,71 @@ app.use(session({
 
 
 //Basic Authentication by using signedCookies
+// function auth(req, res, next) {
+//     if (!req.session.user) {
+
+//         const authHeader = req.headers.authorization
+//         if (!authHeader) {
+//             const err = new Error('You are not authorized')
+//             res.setHeader('WWW-Authenticate', 'Basic')
+//             err.status = 403
+//             return next(err)
+//         }
+
+//         const auth = new Buffer.from(authHeader.split(' ')[1], 'base64').toString().split(':')
+//         const username = auth[0]
+//         const password = auth[1]
+
+//         if (username === 'admin' && password === 'password') {
+//             // res.cookie('user', 'admin', { signed: true })
+//             req.session.user = 'admin'
+//             console.log('You are authorized')
+//             next()
+//         } else {
+//             const err = new Error('You are not authorized')
+//             res.setHeader('WWW-Authenticate', 'Basic')
+//             err.status = 403
+//             return next(err)
+//         }
+
+//     } else {
+//         if (req.session.user === 'admin') {
+//             console.log('req.session: ', req.session)
+//             next()
+//         } else {
+//             const err = new Error('You are not authorized')
+//             err.status = 403
+//             return next(err)
+//         }
+//     }
+
+// }
+
+
+
+
 function auth(req, res, next) {
+    console.log(req.session);
+
     if (!req.session.user) {
-
-        const authHeader = req.headers.authorization
-        if (!authHeader) {
-            const err = new Error('You are not authorized')
-            res.setHeader('WWW-Authenticate', 'Basic')
-            err.status = 403
-            return next(err)
+        var err = new Error('You are not authenticated!');
+        err.status = 403;
+        return next(err);
+    }
+    else {
+        if (req.session.user === 'authenticated') {
+            next();
         }
-
-        const auth = new Buffer.from(authHeader.split(' ')[1], 'base64').toString().split(':')
-        const username = auth[0]
-        const password = auth[1]
-
-        if (username === 'admin' && password === 'password') {
-            // res.cookie('user', 'admin', { signed: true })
-            req.session.user = 'admin'
-            console.log('You are authorized')
-            next()
-        } else {
-            const err = new Error('You are not authorized')
-            res.setHeader('WWW-Authenticate', 'Basic')
-            err.status = 403
-            return next(err)
-        }
-
-    } else {
-        if (req.session.user === 'admin') {
-            console.log('req.session: ', req.session)
-            next()
-        } else {
-            const err = new Error('You are not authorized')
-            err.status = 403
-            return next(err)
+        else {
+            var err = new Error('You are not authenticated!');
+            err.status = 403;
+            return next(err);
         }
     }
-
 }
+
+
+
 
 app.use(auth)
 app.use(express.static(__dirname + 'public'))
@@ -92,6 +119,7 @@ app.use(express.static(__dirname + 'public'))
 app.use('/dishes', dishRouter)
 app.use('/promotions', promoRouter)
 app.use('/leaders', leaderRouter)
+app.use('/user', userRouter)
 
 //Our endpoints
 app.get('/', (req, res) => {
