@@ -28,38 +28,48 @@ app.use(morgan('dev'))
 app.use(cors())
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
-app.use(cookiParser())
+app.use(cookiParser('12345-67890-09876-54321'))
 
 
 
-//Basic Authentication 
+//Basic Authentication by using signedCookies
 function auth(req, res, next) {
-    const authHeader = req.headers.authorization
-    if (!authHeader) {
-        const err = new Error('You are not authorized')
-        res.setHeader('WWW-Authenticate', 'Basic')
-        err.status = 403
-        return next(err)
-    }
+    if (!req.signedCookies.user) {
 
-    const auth = new Buffer(authHeader.split(' ')[1], 'base64').toString().split(':')
-    const username = auth[0]
-    const password = auth[1]
+        const authHeader = req.headers.authorization
+        if (!authHeader) {
+            const err = new Error('You are not authorized')
+            res.setHeader('WWW-Authenticate', 'Basic')
+            err.status = 403
+            return next(err)
+        }
 
-    if (username === 'admin' && password === 'password') {
-        console.log('You are authorized')
-        next()
+        const auth = new Buffer.from(authHeader.split(' ')[1], 'base64').toString().split(':')
+        const username = auth[0]
+        const password = auth[1]
+
+        if (username === 'admin' && password === 'password') {
+            res.cookie('user', 'admin', { signed: true })
+            console.log('You are authorized')
+            next()
+        } else {
+            const err = new Error('You are not authorized')
+            res.setHeader('WWW-Authenticate', 'Basic')
+            err.status = 403
+            return next(err)
+        }
+
     } else {
-        const err = new Error('You are not authorized')
-        res.setHeader('WWW-Authenticate', 'Basic')
-        err.status = 403
-        return next(err)
+        if (req.signedCookies.user === 'admin') {
+            next()
+        } else {
+            const err = new Error('You are not authorized')
+            err.status = 403
+            return next(err)
+        }
     }
 
 }
-
-
-
 
 app.use(auth)
 app.use(express.static(__dirname + 'public'))
