@@ -4,6 +4,7 @@ const Leaders = require('../modles/leaders')
 
 
 
+
 //Get all the leaders on endpoints GET PUT POST DELETE
 
 leaderRouter.route('/')
@@ -22,8 +23,8 @@ leaderRouter.route('/')
     })
 
     .post((req, res, next) => {
-        const promotion = req.body
-        new Leaders(promotion).save()
+        const leader = req.body
+        new Leaders(leader).save()
             .then(data => res.json(data), err => next(err))
             .catch(err => next(err))
     })
