@@ -2,6 +2,9 @@ const express = require('express')
 const cors = require('cors')
 const morgan = require('morgan')
 const cookiParser = require('cookie-parser')
+const session = require('express-session')
+//If you do not have a database you could youse the  FILESTORE below to save the sessions after your server is turned off 
+const fileStore = require('session-file-store')(session)
 const mongoose = require('mongoose')
 const dishRouter = require('./routes/dishRouter')
 const promoRouter = require('./routes/promoRouter')
@@ -28,13 +31,22 @@ app.use(morgan('dev'))
 app.use(cors())
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
-app.use(cookiParser('12345-67890-09876-54321'))
+
+//Session or cookie parser, we used cookie parser in previous example
+// app.use(cookiParser('12345-67890-09876-54321'))
+app.use(session({
+    name: 'session-id',
+    secret: '12345-67890-09876-54321',
+    resave: false,
+    saveUninitialized: false,
+    store: new fileStore()
+}))
 
 
 
 //Basic Authentication by using signedCookies
 function auth(req, res, next) {
-    if (!req.signedCookies.user) {
+    if (!req.session.user) {
 
         const authHeader = req.headers.authorization
         if (!authHeader) {
@@ -49,7 +61,8 @@ function auth(req, res, next) {
         const password = auth[1]
 
         if (username === 'admin' && password === 'password') {
-            res.cookie('user', 'admin', { signed: true })
+            // res.cookie('user', 'admin', { signed: true })
+            req.session.user = 'admin'
             console.log('You are authorized')
             next()
         } else {
@@ -60,7 +73,8 @@ function auth(req, res, next) {
         }
 
     } else {
-        if (req.signedCookies.user === 'admin') {
+        if (req.session.user === 'admin') {
+            console.log('req.session: ', req.session)
             next()
         } else {
             const err = new Error('You are not authorized')
