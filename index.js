@@ -4,6 +4,9 @@ const cors = require('cors')
 const morgan = require('morgan')
 const cookiParser = require('cookie-parser')
 const session = require('express-session')
+const passport = require('passport')
+const configure = require('./configure')
+
 //If you do not have a database you could youse the  FILESTORE below to save the sessions after your server is turned off 
 const fileStore = require('session-file-store')(session)
 const dishRouter = require('./routes/dishRouter')
@@ -14,7 +17,6 @@ const userRouter = require('./routes/userRouter')
 
 // Server Initialization 
 const app = express()
-
 
 //Connection to mongoose
 const url = 'mongodb://localhost/courseraDb'
@@ -43,6 +45,8 @@ app.use(session({
     store: new fileStore()
 }))
 
+app.use(passport.initialize())
+app.use(passport.session())
 
 
 //Basic Authentication by using signedCookies
@@ -90,22 +94,24 @@ app.use(session({
 
 
 function auth(req, res, next) {
-    console.log(req.session);
-
-    if (!req.session.user) {
+    // console.log(req.session);
+    // if(req.session.user){}
+    if (!req.user) {
         var err = new Error('You are not authenticated!');
         err.status = 403;
         return next(err);
     }
     else {
-        if (req.session.user === 'authenticated') {
-            next();
-        }
-        else {
-            var err = new Error('You are not authenticated!');
-            err.status = 403;
-            return next(err);
-        }
+        // if (req.session.user === 'authenticated') {
+        //     next();
+        // }
+        // else {
+        //     var err = new Error('You are not authenticated!');
+        //     err.status = 403;
+        //     return next(err);
+        // }
+
+        next()
     }
 }
 
