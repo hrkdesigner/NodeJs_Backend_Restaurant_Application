@@ -1,42 +1,50 @@
 const express = require('express')
-// const bodyParser = require('body-parser');
+const bodyParser = require('body-parser');
 const User = require('../modles/user');
 const passport = require('passport')
+const authenticate = require('../authenticate')
 
 
 
 const userRouter = express.Router()
 
 userRouter.post('/signup', (req, res) => {
-    User.register(new User({ username: req.body.username },
-        req.body.password, (err, user) => {
-            if (err) {
-                res.statusCode = 500
-                res.setHeader('Content-Type', 'application/json');
-                res.json({ err: err })
-            } else {
-                //For password authentication
-                passport.authenticate('local')(req, res, () => {
+    User.register({ username: req.body.username }, req.body.password, (err, user) => {
+        if (err) {
+            res.statusCode = 500
+            res.setHeader('Content-Type', 'application/json');
+            res.json({ err: err })
+        } else {
+            User.authenticate(req.body.username, req.body.password, function (err, result) {
+                if (err) {
+                    res.statusCode = 500
+                    res.setHeader('Content-Type', 'application/json');
+                    res.json({ err: err })
+                }
+                else {
                     res.statusCode = 200;
                     res.setHeader('Content-Type', 'application/json');
                     res.json({ success: true, status: 'Registration Successful!' })
-                })
-            }
-        }))
+                }
+            })
+        }
+    })
 })
-
 
 userRouter.post('/login', passport.authenticate('local'), (req, res) => {
+    const token = authenticate.getJwtToken({ _id: req.user._id })
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
-    res.json({ success: true, status: 'You are successfully logged in' })
+    res.json({ success: true, token: token, status: 'You are successfully logged in' })
 })
 
 
 
-userRouter.get('/logout', (req, res) => {
-    if (req.session) {
-        req.session.destroy();
+userRouter.get('/logout', (req, res, next) => {
+    if (req.user) {
+        // if(req.session){}
+        // req.session.destroy();
+        req.logout()
         res.clearCookie('session-id');
         res.redirect('/');
     }

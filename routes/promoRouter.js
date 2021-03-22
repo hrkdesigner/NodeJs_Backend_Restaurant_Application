@@ -1,7 +1,6 @@
-const express = require('express') 
+const express = require('express')
 const promoRouter = express.Router()
 const Promotion = require('../modles/promotions')
-
 
 
 
@@ -53,7 +52,7 @@ promoRouter.route('/:promoId')
                 if (data !== null) {
                     res.json(data)
                 } else {
-                   res.send( `User with this id :: ${promotion} was not found`)
+                    res.send(`User with this id :: ${promotion} was not found`)
                 }
             }, err => next(err))
             .catch(err => next(err))

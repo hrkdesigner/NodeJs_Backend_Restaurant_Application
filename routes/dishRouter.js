@@ -2,6 +2,7 @@ const express = require('express')
 const dishRouter = express.Router()
 const mongoose = require('mongoose')
 const Dishes = require('../modles/dishes')
+const authenticate = require('../authenticate')
 
 
 
@@ -15,7 +16,7 @@ dishRouter.route('/')
     })
 
     .get((req, res, next) => {
-        const allData = Dishes.find({})
+        Dishes.find({})
             .then(response => {
                 res.json(response)
                 res.end()
@@ -23,7 +24,7 @@ dishRouter.route('/')
             .catch(err => next(err))
     })
 
-    .post((req, res, next) => {
+    .post(authenticate.verifyUser, (req, res, next) => {
         //   We can use either Dishes.create()   OR     new Dishes().save()
         const newData = new Dishes(req.body).save()
         newData
@@ -64,7 +65,7 @@ dishRouter.route('/:dishId')
             .catch(err => next(err))
     })
 
-    .post((req, res) => {
+    .post(authenticate.verifyUser, (req, res) => {
         res.status(403)
         res.end('POST operation is not applicable here !!!')
     })
@@ -109,7 +110,7 @@ dishRouter.route('/:dishId/comments')
 
 
 
-    .post((req, res, next) => {
+    .post(authenticate.verifyUser, (req, res, next) => {
         const endPoint = req.params.dishId
         Dishes.findById(endPoint)
             .then(data => {
@@ -186,7 +187,7 @@ dishRouter.route('/:dishId/comments/:commentId')
             .catch(err => next(err))
     })
 
-    .post((req, res, next) => {
+    .post(authenticate.verifyUser, (req, res, next) => {
         const endPoint = req.params.dishId
         const commentId = req.params.commentId
         res.status(403)
