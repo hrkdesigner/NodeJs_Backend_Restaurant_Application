@@ -17,6 +17,7 @@ dishRouter.route('/')
 
     .get((req, res, next) => {
         Dishes.find({})
+            .populate('comments.author')
             .then(response => {
                 res.json(response)
                 res.end()
@@ -54,6 +55,7 @@ dishRouter.route('/:dishId')
     .get((req, res, next) => {
         const endPoint = req.params.dishId
         Dishes.findById(endPoint)
+            .populate('comments.author')
             .then(data => {
                 if (data != null) {
                     res.json(data)
@@ -95,6 +97,7 @@ dishRouter.route('/:dishId/comments')
     .get((req, res, next) => {
         const endPoint = req.params.dishId
         Dishes.findById(endPoint)
+            .populate('comments.author')
             .then(data => {
                 if (data != null) {
                     res.json(data.comments)
@@ -115,9 +118,18 @@ dishRouter.route('/:dishId/comments')
         Dishes.findById(endPoint)
             .then(data => {
                 if (data != null) {
+                    req.body.author = req.user._id
                     data.comments.push(req.body)
                     data.save()
-                        .then(result => res.json(result), err => next(err))
+                        .then(dish => {
+                            Dishes.findById(dish._id)
+                                .populate('comments.author')
+                                .then(dish => {
+                                    res.statusCode = 200
+                                    res.setHeader('Content-Type', 'application/json')
+                                    res.json(dish)
+                                }, err => next(err))
+                        })
                         .catch(err => next(err))
                 } else {
                     const err = new Error(`Dish with the given id :: ${endPoint} was not found`)
@@ -170,6 +182,7 @@ dishRouter.route('/:dishId/comments/:commentId')
         const endPoint = req.params.dishId
         const commentId = req.params.commentId
         Dishes.findById(endPoint)
+            .populate('comments.author')
             .then(data => {
                 if (data != null && data.comments.id(commentId) != null) {
                     res.json(data.comments.id(commentId))
@@ -199,7 +212,7 @@ dishRouter.route('/:dishId/comments/:commentId')
         const commentId = req.params.commentId
         Dishes.findById(endPoint)
             .then(data => {
-                if (data != null && data.comments.id(commentId != null)) {
+                if (data != null && data.comments.id(commentId)  != null) {
                     if (req.body.rating) {
                         data.comments.id(commentId).rating = req.body.rating
                     }
@@ -207,8 +220,13 @@ dishRouter.route('/:dishId/comments/:commentId')
                         data.comments.id(commentId).comment = req.body.comment
                     }
                     data.save()
-                        .then(result => {
-                            res.json(result)
+                        .then(dish => {
+                            console.log(dish)
+                            Dishes.findById(dish._id)
+                                .populate('comments.author')
+                                .then(dish => {
+                                    res.json(dish)
+                                }, err => next(err))
                         })
                         .catch(err => next(err))
                 } else {
@@ -229,8 +247,14 @@ dishRouter.route('/:dishId/comments/:commentId')
                 if (data != null && data.comments.id(commentId) != null) {
                     data.comments.id(commentId).remove()
                     data.save()
-                        .then(result => res.json(result))
-                        .catch(err => next(err))
+                    .then(dish => {
+                        Dishes.findById(dish._id)
+                            .populate('comments.author')
+                            .then(dish => {
+                                res.json(dish)
+                            }, err => next(err))
+                    })
+                    .catch(err => next(err))
 
                 } else if (data == null) {
                     const err = new Error(`Dish with the given id :: ${endPoint} was not found`)

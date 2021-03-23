@@ -37,17 +37,17 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 
 //Session or cookie parser, we used cookie parser in previous example
-// app.use(cookiParser('12345-67890-09876-54321'))
-//app.use(session({
-//name: 'session-id',
-//secret: '12345-67890-09876-54321',
-//resave: false,
-//saveUninitialized: false,
-//store: new fileStore()
-//}))
+app.use(cookiParser('12345-67890-09876-54321'))
+app.use(session({
+name: 'session-id',
+secret: '12345-67890-09876-54321',
+resave: false,
+saveUninitialized: false,
+store: new fileStore()
+}))
 
 app.use(passport.initialize())
-// app.use(passport.session())
+app.use(passport.session())
 
 
 //Basic Authentication by using signedCookies

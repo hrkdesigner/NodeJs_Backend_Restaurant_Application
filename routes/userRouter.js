@@ -8,6 +8,15 @@ const authenticate = require('../authenticate')
 
 const userRouter = express.Router()
 
+
+userRouter.get('/', (req, res, next) => {
+    User.find({})
+        .then(data => {
+            res.json(data)
+        })
+        .catch(err => next(err))
+})
+
 userRouter.post('/signup', (req, res) => {
     User.register({ username: req.body.username }, req.body.password, (err, user) => {
         if (err) {
@@ -15,18 +24,39 @@ userRouter.post('/signup', (req, res) => {
             res.setHeader('Content-Type', 'application/json');
             res.json({ err: err })
         } else {
-            User.authenticate(req.body.username, req.body.password, function (err, result) {
+            if (req.body.firstname) {
+                user.firstname = req.body.firstname
+            }
+
+            if (req.body.lastname) {
+                user.lastname = req.body.lastname
+            }
+            user.save((err, data) => {
                 if (err) {
                     res.statusCode = 500
                     res.setHeader('Content-Type', 'application/json');
                     res.json({ err: err })
-                }
-                else {
-                    res.statusCode = 200;
-                    res.setHeader('Content-Type', 'application/json');
-                    res.json({ success: true, status: 'Registration Successful!' })
+                } else {
+                    // User.authenticate(req.body.username, req.body.password, function (err, result) {
+                    //     if (err) {
+                    //         res.statusCode = 500
+                    //         res.setHeader('Content-Type', 'application/json');
+                    //         res.json({ err: err })
+                    //     }
+                    //     else {
+                    //         res.statusCode = 200;
+                    //         res.setHeader('Content-Type', 'application/json');
+                    //         res.json({ success: true, status: 'Registration Successful!' })
+                    //     }
+                    // })
+                    User.authenticate('local')(req, res, () => {
+                        res.statusCode = 200;
+                        res.setHeader('Content-Type', 'application/json');
+                        res.json({ success: true, status: 'Registration Successful!' })
+                    })
                 }
             })
+
         }
     })
 })
@@ -41,10 +71,8 @@ userRouter.post('/login', passport.authenticate('local'), (req, res) => {
 
 
 userRouter.get('/logout', (req, res, next) => {
-    if (req.user) {
-        // if(req.session){}
-        // req.session.destroy();
-        req.logout()
+    if (req.session) {
+        req.session.destroy();
         res.clearCookie('session-id');
         res.redirect('/');
     }
