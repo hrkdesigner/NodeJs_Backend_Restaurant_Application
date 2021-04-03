@@ -16,6 +16,7 @@ const promoRouter = require('./routes/promoRouter')
 const leaderRouter = require('./routes/leaderRouter')
 const userRouter = require('./routes/userRouter')
 const uploadRouter = require('./routes/uploadRouter');
+const favoriteRouter = require('./routes/favoritesRouter');
 
 
 
@@ -134,6 +135,7 @@ app.use('/dishes', dishRouter)
 app.use('/promotions', promoRouter)
 app.use('/leaders', leaderRouter)
 app.use('/imageUpload',uploadRouter);
+app.use('/favorites',favoriteRouter);
 
 
 
