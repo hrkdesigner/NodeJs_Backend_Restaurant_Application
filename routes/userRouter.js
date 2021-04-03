@@ -3,13 +3,14 @@ const bodyParser = require('body-parser');
 const User = require('../modles/user');
 const passport = require('passport')
 const authenticate = require('../authenticate')
+const cors = require('./cors');
 
 
 
 const userRouter = express.Router()
 
 
-userRouter.get('/', authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+userRouter.get('/', cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     User.find({})
         .then(data => {
             res.json(data)
@@ -17,7 +18,7 @@ userRouter.get('/', authenticate.verifyUser, authenticate.verifyAdmin, (req, res
         .catch(err => next(err))
 })
 
-userRouter.post('/signup', (req, res) => {
+userRouter.post('/signup', cors.corsWithOptions, (req, res) => {
     User.register({ username: req.body.username }, req.body.password, (err, user) => {
         if (err) {
             res.statusCode = 500
@@ -61,7 +62,7 @@ userRouter.post('/signup', (req, res) => {
     })
 })
 
-userRouter.post('/login', passport.authenticate('local'), (req, res) => {
+userRouter.post('/login', cors.corsWithOptions, passport.authenticate('local'), (req, res) => {
     const token = authenticate.getJwtToken({ _id: req.user._id })
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
@@ -70,7 +71,7 @@ userRouter.post('/login', passport.authenticate('local'), (req, res) => {
 
 
 
-userRouter.get('/logout', (req, res, next) => {
+userRouter.get('/logout', cors.corsWithOptions, (req, res, next) => {
     if (req.session) {
         req.session.destroy();
         res.clearCookie('session-id');

@@ -3,19 +3,22 @@ const dishRouter = express.Router()
 const mongoose = require('mongoose')
 const Dishes = require('../modles/dishes')
 const authenticate = require('../authenticate')
+const cors = require('./cors');
+
 
 
 
 
 
 dishRouter.route('/')
+    .options(cors.corsWithOptions, (req, res) => { res.sendStatus(200); })
     .all((req, res, next) => {
         res.status(200)
         res.setHeader('Content-Type', 'application/json')
         next()
     })
 
-    .get((req, res, next) => {
+    .get(cors.cors, (req, res, next) => {
         Dishes.find({})
             .populate('comments.author')
             .then(response => {
@@ -25,7 +28,7 @@ dishRouter.route('/')
             .catch(err => next(err))
     })
 
-    .post(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+    .post(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
         //   We can use either Dishes.create()   OR     new Dishes().save()
         const newData = new Dishes(req.body).save()
         newData
@@ -33,12 +36,12 @@ dishRouter.route('/')
             .catch(err => console.log(`newData is not added :: ${err.message}`))
     })
 
-    .put(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+    .put(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
         res.status(403)
         res.end('PUT operation is not applicable on /dishes !!!')
     })
 
-    .delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+    .delete(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
         const deleteData = Dishes.remove({})
         deleteData
             .then(data => {
@@ -52,7 +55,8 @@ dishRouter.route('/')
 
 
 dishRouter.route('/:dishId')
-    .get((req, res, next) => {
+    .options(cors.corsWithOptions, (req, res) => { res.sendStatus(200); })
+    .get(cors.cors, (req, res, next) => {
         const endPoint = req.params.dishId
         Dishes.findById(endPoint)
             .populate('comments.author')
@@ -67,12 +71,12 @@ dishRouter.route('/:dishId')
             .catch(err => next(err))
     })
 
-    .post(authenticate.verifyUser, authenticate.verifyAdmin, (req, res) => {
+    .post(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res) => {
         res.status(403)
         res.end('POST operation is not applicable here !!!')
     })
 
-    .put(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+    .put(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
         const endPoint = req.params.dishId
         Dishes.findByIdAndUpdate(endPoint, { $set: req.body }, { new: true })
             .then(data => {
@@ -81,7 +85,7 @@ dishRouter.route('/:dishId')
             .catch(err => next(err))
     })
 
-    .delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+    .delete(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
         const endPoint = req.params.dishId
         Dishes.findByIdAndRemove(endPoint)
             .then(data => res.json(data), err => next(err))
@@ -94,7 +98,8 @@ dishRouter.route('/:dishId')
 //Routes for Comments
 
 dishRouter.route('/:dishId/comments')
-    .get((req, res, next) => {
+    .options(cors.corsWithOptions, (req, res) => { res.sendStatus(200); })
+    .get(cors.cors, (req, res, next) => {
         const endPoint = req.params.dishId
         Dishes.findById(endPoint)
             .populate('comments.author')
@@ -113,7 +118,7 @@ dishRouter.route('/:dishId/comments')
 
 
 
-    .post(authenticate.verifyUser, (req, res, next) => {
+    .post(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
         const endPoint = req.params.dishId
         Dishes.findById(endPoint)
             .then(data => {
@@ -140,12 +145,12 @@ dishRouter.route('/:dishId/comments')
             .catch(err => next(err))
     })
 
-    .put((req, res, next) => {
+    .put(cors.corsWithOptions, (req, res, next) => {
         res.status = 403
         res.json(`This operation is not applicable with this request`)
     })
 
-    .delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+    .delete(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
         const endPoint = req.params.dishId
         Dishes.findById(endPoint)
             .then(data => {
@@ -178,7 +183,8 @@ dishRouter.route('/:dishId/comments')
 
 
 dishRouter.route('/:dishId/comments/:commentId')
-    .get((req, res, next) => {
+    .options(cors.corsWithOptions, (req, res) => { res.sendStatus(200); })
+    .get(cors.cors, (req, res, next) => {
         const endPoint = req.params.dishId
         const commentId = req.params.commentId
         Dishes.findById(endPoint)
@@ -200,12 +206,12 @@ dishRouter.route('/:dishId/comments/:commentId')
             .catch(err => next(err))
     })
 
-    .post(authenticate.verifyUser, (req, res, next) => {
+    .post(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
         res.status(403)
         res.json('POST operation is not applicable with this request')
     })
 
-    .put(authenticate.verifyUser, (req, res, next) => {
+    .put(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
         const endPoint = req.params.dishId
         const commentId = req.params.commentId
         Dishes.findById(endPoint)
@@ -245,7 +251,7 @@ dishRouter.route('/:dishId/comments/:commentId')
 
 
 
-    .delete((req, res, next) => {
+    .delete(cors.corsWithOptions, (req, res, next) => {
         const endPoint = req.params.dishId
         const commentId = req.params.commentId
         Dishes.findById(endPoint)
