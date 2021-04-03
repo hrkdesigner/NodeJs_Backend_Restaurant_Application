@@ -8,12 +8,15 @@ const passport = require('passport')
 const authenticate = require('./authenticate')
 const config = require('./config')
 
+
 //If you do not have a database you could youse the  FILESTORE below to save the sessions after your server is turned off 
 const fileStore = require('session-file-store')(session)
 const dishRouter = require('./routes/dishRouter')
 const promoRouter = require('./routes/promoRouter')
 const leaderRouter = require('./routes/leaderRouter')
 const userRouter = require('./routes/userRouter')
+const uploadRouter = require('./routes/uploadRouter');
+
 
 
 // Server Initialization 
@@ -130,6 +133,8 @@ app.use(express.static(__dirname + 'public'))
 app.use('/dishes', dishRouter)
 app.use('/promotions', promoRouter)
 app.use('/leaders', leaderRouter)
+app.use('/imageUpload',uploadRouter);
+
 
 
 //Connection to our server

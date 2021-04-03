@@ -205,13 +205,13 @@ dishRouter.route('/:dishId/comments/:commentId')
         res.json('POST operation is not applicable with this request')
     })
 
-    .put(authenticate.verifyUser, (req, res, next) => {
+    .put((req, res, next) => {
         const endPoint = req.params.dishId
         const commentId = req.params.commentId
         Dishes.findById(endPoint)
             .then(data => {
                 if (data != null && data.comments.id(commentId) != null) {
-                    if (parseInt(data.comments.id(commentId).author._id) === parseInt(req.user._id)) {
+                    if (data.comments.id(commentId).author._id == req.user._id) {
                         if (req.body.rating) {
                             data.comments.id(commentId).rating = req.body.rating
                         }
@@ -251,7 +251,7 @@ dishRouter.route('/:dishId/comments/:commentId')
         Dishes.findById(endPoint)
             .then(data => {
                 if (data != null && data.comments.id(commentId) != null) {
-                    if (parseInt(data.comments.id(commentId).author._id) === parseInt(req.user._id)) {
+                    if (data.comments.id(commentId).author._id === req.user._id) {
                         data.comments.id(commentId).remove()
                         data.save()
                             .then(dish => {

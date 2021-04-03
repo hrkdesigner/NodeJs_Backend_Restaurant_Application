@@ -9,7 +9,7 @@ const authenticate = require('../authenticate')
 const userRouter = express.Router()
 
 
-userRouter.get('/', (req, res, next) => {
+userRouter.get('/', authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     User.find({})
         .then(data => {
             res.json(data)

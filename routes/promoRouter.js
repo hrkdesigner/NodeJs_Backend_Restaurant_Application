@@ -1,6 +1,7 @@
 const express = require('express')
 const promoRouter = express.Router()
 const Promotion = require('../modles/promotions')
+const authenticate = require('../authenticate')
 
 
 
@@ -22,19 +23,19 @@ promoRouter.route('/')
             .catch(err => next(err))
     })
 
-    .post((req, res, next) => {
+    .post(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
         const promotion = req.body
         new Promotion(promotion).save()
             .then(data => res.json(data), err => next(err))
             .catch(err => next(err))
     })
 
-    .put((req, res) => {
+    .put(authenticate.verifyUser, authenticate.verifyAdmin, (req, res) => {
         res.status(403)
         res.end('PUT operation is not applicable on /Promotion !!!')
     })
 
-    .delete((req, res, next) => {
+    .delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
         Promotion.remove({})
             .then(data => res.json(data))
             .catch(err => next(err), err => next(err))
@@ -58,19 +59,19 @@ promoRouter.route('/:promoId')
             .catch(err => next(err))
     })
 
-    .post((req, res) => {
+    .post(authenticate.verifyUser, authenticate.verifyAdmin, (req, res) => {
         res.status(403)
         res.json('POST operation is not applicable on a specific promotion !!!')
     })
 
-    .put((req, res, next) => {
+    .put(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
         const promotion = req.params.promoId
         Promotion.findByIdAndUpdate(promotion, { $set: req.body }, { new: true })
             .then(data => res.json(data), err => next(err))
             .catch(err => next(err))
     })
 
-    .delete((req, res, next) => {
+    .delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
         const promotion = req.params.promoId
         Promotion.findByIdAndRemove(promotion)
             .then(data => {
